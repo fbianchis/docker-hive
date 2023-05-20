@@ -11,18 +11,96 @@ services:
       - ./hadoop-hive.env
     ports:
       - "50070:50070"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == V006M24
+  
+  
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
     volumes:
-      - datanode:/hadoop/dfs/data
+      - /media/tcc/7081ba02-5585-41c4-a66b-89165f047314/datanode:/hadoop/dfs/data
     env_file:
       - ./hadoop-hive.env
     environment:
       SERVICE_PRECONDITION: "namenode:50070"
     ports:
       - "50075:50075"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.hostname == V006M20
+  
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    volumes:
+      - /media/tcc/Storage/datanode:/hadoop/dfs/data
+    env_file:
+      - ./hadoop-hive.env
+    environment:
+      SERVICE_PRECONDITION: "namenode:50070"
+    ports:
+      - "50076:50076"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.hostname == V006M21
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    volumes:
+      - /media/tcc/fd8b63bf-b3ba-493c-b382-98955f2e2936/datanode:/hadoop/dfs/data
+    env_file:
+      - ./hadoop-hive.env
+    environment:
+      SERVICE_PRECONDITION: "namenode:50070"
+    ports:
+      - "50077:50077"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.hostname == V006M22
+  
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    volumes:
+      - /media/tcc/9505b8b3-4b08-42bb-928c-4212cccc4011/datanode:/hadoop/dfs/data
+    env_file:
+      - ./hadoop-hive.env
+    environment:
+      SERVICE_PRECONDITION: "namenode:50070"
+    ports:
+      - "50078:50078"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.hostname == V006M23
+  
   hive-server:
     image: bde2020/hive:2.3.2-postgresql-metastore
+    volumes:
+      - /media/tcc/682d4c36-a76e-420b-b8cc-f650b07a3eb3/dataset:/dataset
     env_file:
       - ./hadoop-hive.env
     environment:
@@ -30,22 +108,61 @@ services:
       SERVICE_PRECONDITION: "hive-metastore:9083"
     ports:
       - "10000:10000"
+    deploy:
+        mode: replicated
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+        placement:
+          constraints:
+            - node.hostname == V006M24
+  
   hive-metastore:
     image: bde2020/hive:2.3.2-postgresql-metastore
     env_file:
       - ./hadoop-hive.env
     command: /opt/hive/bin/hive --service metastore
     environment:
-      SERVICE_PRECONDITION: "namenode:50070 datanode:50075 hive-metastore-postgresql:5432"
+      SERVICE_PRECONDITION: "namenode:50070 datanode:50075 datanode1:50075 datanode2:50075 datanode3:50075 hive-metastore-postgresql:5432"
     ports:
       - "9083:9083"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.hostname == V006M24
+  
   hive-metastore-postgresql:
     image: bde2020/hive-metastore-postgresql:2.3.0
+    deploy:
+        mode: replicated
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+        placement:
+          constraints:
+            - node.hostname == V006M24
+  
   presto-coordinator:
     image: shawnzhu/prestodb:0.181
     ports:
       - "8080:8080"
+    deploy:
+        mode: replicated
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+        placement:
+          constraints:
+            - node.hostname == V006M24
 
 volumes:
   namenode:
   datanode:
+  datanode1:
+  datanode2:
+  datanode3:
+
